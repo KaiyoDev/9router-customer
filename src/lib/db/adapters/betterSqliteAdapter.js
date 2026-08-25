@@ -1,10 +1,22 @@
-import Database from "better-sqlite3";
+// better-sqlite3 adapter — uses dynamic import so webpack won't fail
+// at build time when the package is omitted (e.g. rootless Podman
+// without native build tools on Alpine/ARM64).
+// Falls back to node:sqlite or sql.js via driver.js when unavailable.
 import { PRAGMA_SQL } from "../schema.js";
 
 // Periodic checkpoint to keep WAL file small (avoid huge -wal/-shm growth)
 const CHECKPOINT_INTERVAL_MS = 60 * 1000;
 
-export function createBetterSqliteAdapter(filePath) {
+export async function createBetterSqliteAdapter(filePath) {
+  // Dynamic import — safe even if better-sqlite3 is not installed
+  let Database;
+  try {
+    const mod = await import("better-sqlite3");
+    Database = mod.default ?? mod;
+  } catch {
+    throw new Error("better-sqlite3 is not installed");
+  }
+
   const db = new Database(filePath);
   db.exec(PRAGMA_SQL);
   // Schema is created/synced by migrate.js after adapter init

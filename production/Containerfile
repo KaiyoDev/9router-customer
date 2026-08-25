@@ -15,7 +15,10 @@
 # so the build context is already production-clean.
 
 # ── Stage 1: Builder ───────────────────────────────────────
-FROM node:22-alpine AS builder
+# Using node:22-slim (Debian/glibc) instead of Alpine/musl.
+# Next.js SWC binary (lightningcss) only ships glibc builds,
+# so Alpine would fail with "Cannot find module lightningcss.*.musl.node".
+FROM node:22-slim AS builder
 
 WORKDIR /build
 
@@ -48,13 +51,14 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # ── Stage 2: Runner (minimal ARM64 image) ─────────────────
-FROM node:22-alpine AS runner
+# Must match builder base for SWC/lightningcss binary compatibility.
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
 # Create non-root user for container security
-RUN addgroup -g 1000 -S nodejs \
-    && adduser -u 1000 -S nodejs -G nodejs -h /app
+RUN groupadd -g 1000 nodejs \
+    && useradd -u 1000 -g nodejs -d /app -s /bin/sh nodejs
 
 # ── Runtime environment ────────────────────────────────────
 ENV NODE_ENV=production \
