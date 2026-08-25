@@ -27,11 +27,13 @@ WORKDIR /build
 # Copy manifests first (layer caching)
 COPY package.json ./
 
-# Install production dependencies only
+# Install ALL dependencies (build needs @tailwindcss/postcss, postcss, tailwindcss
+# which are in devDependencies).  eslint is also installed but never copied
+# into the runner stage, so it adds zero runtime overhead.
 # --ignore-scripts prevents native addon compilation (better-sqlite3).
 # Using npm install instead of npm ci: package-lock.json is gitignored
 # in this repo so it won't be available in the build context.
-RUN npm install --production --ignore-scripts \
+RUN npm install --ignore-scripts \
     && npm cache clean --force \
     && rm -rf /root/.npm /tmp/* /var/tmp/*
 
