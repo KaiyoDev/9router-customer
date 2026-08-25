@@ -3,7 +3,7 @@
  */
 "use client";
 
-import { getStatusColor, getStatusLabel } from "./StatusIndicator";
+import { getStatusColor, getStatusLabel } from "../lib/statusHelpers";
 
 export default function OverallStatusCard({ status, version, updatedAt }) {
   const color = getStatusColor(status);

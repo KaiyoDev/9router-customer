@@ -1,12 +1,8 @@
 /**
  * useStatusData — fetches real API data with mock fallback.
  *
- * Respects the MOCK_MODE flag in mockData.js:
- *   - true  → returns static mock data immediately (dev/test)
- *   - false → fetches from /api/status on mount + polls every 30s
- *
- * Note: fetchData is called outside useEffect to satisfy the React
- * lint rule about not triggering setState synchronously from effects.
+ * Uses a ref-based init flag to avoid calling setState during render
+ * (which React StrictMode detects as an infinite-loop risk).
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 
@@ -17,6 +13,7 @@ export function useStatusData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const intervalRef = useRef(null);
+  const initializedRef = useRef(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -32,14 +29,9 @@ export function useStatusData() {
     }
   }, []);
 
-  // Fire initial fetch immediately (not inside useEffect) to avoid
-  // the react-hooks/set-state-in-effect lint rule.
-  if (data === null && loading) {
-    fetchData();
-  }
-
+  // Initial fetch + poll — all inside useEffect so no setState during render
   useEffect(() => {
-    // Poll for updates after the initial fetch
+    fetchData();
     intervalRef.current = setInterval(fetchData, POLL_INTERVAL_MS);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -56,16 +48,19 @@ export function useProviderData() {
   const [providers, setProviders] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const initializedRef = useRef(false);
 
-  // Same pattern: fire fetch immediately
-  if (providers === null && loading) {
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     setLoading(true);
     fetch("/api/status/providers", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((json) => setProviders(json.providers || []))
       .catch((e) => setError(e))
       .finally(() => setLoading(false));
-  }
+  }, []);
 
   return { providers, loading, error };
 }

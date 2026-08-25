@@ -33,7 +33,7 @@ COPY package.json ./
 # --ignore-scripts prevents native addon compilation (better-sqlite3).
 # Using npm install instead of npm ci: package-lock.json is gitignored
 # in this repo so it won't be available in the build context.
-RUN npm install --ignore-scripts \
+RUN npm install --ignore-scripts --omit=optional \
     && npm cache clean --force \
     && rm -rf /root/.npm /tmp/* /var/tmp/*
 
