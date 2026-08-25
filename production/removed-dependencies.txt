@@ -1,0 +1,27 @@
+# ============================================================
+# 9Router ARM64 — Removed Dependencies Manifest
+#
+# Dependencies that should NOT be installed in the production
+# container.  The sync script checks that no new dependency is
+# pulled in that appears here or that contradicts the manifest.
+#
+# Format: one package name per line. Lines starting with # are
+# comments.  Matches against "dependencies" and
+# "optionalDependencies" in package.json.
+#
+# MAINTENANCE:
+#   - Add here any package you deliberately exclude.
+#   - If a dependency becomes necessary, remove it and explain why.
+# ============================================================
+
+# ── Dev-only tools ─────────────────────────────────────────────────
+# eslint, prettier, typescript, etc. — not needed at runtime
+# (covered by npm ci --only=production in Containerfile)
+
+# ── Unnecessary heavy deps ─────────────────────────────────────────
+# Any large packages not actually imported by src/ or open-sse/
+# should be listed here to catch accidental reintroductions.
+
+# ── Examples (uncomment if you remove them intentionally) ──────────
+# some-dev-only-package
+# unused-heavy-library

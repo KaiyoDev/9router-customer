@@ -1,0 +1,79 @@
+# ============================================================
+# 9Router ARM64 — Removed Files Manifest
+#
+# These files/directories were intentionally removed from the
+# custom ARM64 distribution.  The sync script checks every
+# upstream update against this list — if upstream adds any of
+# them back, the sync stops and reports the conflict.
+#
+# Format: one path per line. Lines starting with # are comments.
+# Directories end with /.  Globs are supported (*, **).
+#
+# MAINTENANCE:
+#   When you intentionally remove something new, ADD it here.
+#   When something is re-added for a good reason, REMOVE it here
+#   and document why in the commit message.
+# ============================================================
+
+# ── Docker / Kubernetes (we use Podman Quadlet only) ───────────────
+Dockerfile
+docker-compose.yml
+.dockerignore
+.kubernetes/
+k8s/
+captain-definition
+
+# ── CI / CD workflows ──────────────────────────────────────────────
+.github/
+
+# ── Documentation (read-only, not bundled) ─────────────────────────
+docs/
+gitbook/
+gitbooks/
+
+# ── README translations ────────────────────────────────────────────
+README.fa_IR.md
+README.ru.md
+README.pt-BR.md
+README.fr.md
+README.es.md
+README.th.md
+README.id-ID.md
+
+# ── Testing (separate artifact — not needed at runtime) ────────────
+tests/
+coverage/
+jest.config.*
+vitest.config.*
+
+# ── CLI launcher package (published separately to npm) ─────────────
+cli/
+
+# ── Internationalisation READMEs (app has its own src/i18n/) ───────
+i18n/
+
+# ── Editor / local tooling ─────────────────────────────────────────
+.vscode/
+
+# ── AI agent skills (not part of runtime) ──────────────────────────
+skills/
+
+# ── Legacy deployment scripts ──────────────────────────────────────
+start.sh
+DOCKER.md
+DEPLOYMENT_GUIDE.md
+.env.production
+
+# ── Build output ───────────────────────────────────────────────────
+.next/
+node_modules/
+out/
+build/
+dist/
+data/
+logs/
+
+# ── Cleanup artifacts ──────────────────────────────────────────────
+open-sse.old/
+.cursor/
+.claude/
