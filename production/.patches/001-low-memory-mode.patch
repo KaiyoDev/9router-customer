@@ -1,0 +1,19 @@
+--- a/open-sse/config/runtimeConfig.js
++++ b/open-sse/config/runtimeConfig.js
+@@ -24,10 +24,13 @@ export const CACHE_TTL = {
+ };
+ 
+ // Memory management config
++// Set LOW_MEMORY_MODE=1 env to enable aggressive memory savings for ~2GB RAM TV Box
+ export const MEMORY_CONFIG = {
+-  sessionTtlMs: 2 * 60 * 60 * 1000,
+-  sessionCleanupIntervalMs: 30 * 60 * 1000,
+-  dnsCacheTtlMs: 5 * 60 * 1000,
++  sessionTtlMs: process.env.LOW_MEMORY_MODE === "1" ? 30 * 60 * 1000 : 2 * 60 * 60 * 1000,
++  sessionCleanupIntervalMs: process.env.LOW_MEMORY_MODE === "1" ? 15 * 60 * 1000 : 30 * 60 * 1000,
++  // Reduce DNS cache size to limit memory footprint
++  dnsCacheTtlMs: process.env.LOW_MEMORY_MODE === "1" ? 2 * 60 * 1000 : 5 * 60 * 1000,
+   proxyDispatchersMaxSize: 20,
+ };
+ 
+ // Parse a positive integer env override, falling back to a default.

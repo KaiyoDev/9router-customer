@@ -1,0 +1,79 @@
+# ⚠ DEPRECATED — Use production/9router.container instead
+# This file is kept for reference only.
+# ARM64 Quadlet: production/9router.container
+#
+# 9Router Podman Quadlet — rootless container for ARM64 TV Box
+# Place this file at:
+#   ~/.config/containers/systemd/9router.container
+#
+# Then run (as user kaiyo):
+#   podman生成 9router          # build image
+#   systemctl --user enable --now 9router  # start + auto-start on login
+#
+# Management:
+#   systemctl --user start|stop|restart 9router
+#   systemctl --user status 9router
+#   journalctl --user -u 9router -f       # live logs
+
+[Unit]
+Description=9Router AI Gateway (ARM64 optimized)
+Documentation=https://github.com/decolua/9router
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# Image name (build with: podman build -t 9router -f Containerfile .)
+ContainerName=9router
+Image=localhost/9router:latest
+
+# Port binding: host:container
+PublishPort=20128:20128
+
+# Restart policy: always restart on crash or host reboot (when linger active)
+RestartPolicy=always
+RestartSec=10
+
+# Resource limits — hard cap to protect the 2GB TV Box
+MemoryMax=1800M
+MemoryHigh=1500M
+
+# Environment variables (override defaults from Containerfile)
+Env=NODE_ENV=production
+Env=PORT=20128
+Env=HOSTNAME=0.0.0.0
+Env=NODE_OPTIONS=--max-old-space-size=512 --no-warnings
+Env=ENABLE_REQUEST_LOGS=false
+Env=OBSERVABILITY_ENABLED=false
+# Data persistence: SQLite DB
+Env=DATA_DIR=/var/lib/9router
+
+# Persistent volume for database + usage logs
+Volume=/home/kaiyo/.local/share/9router-data:/app/data:rw,Z
+Volume=/home/kaiyo/.local/share/9router-logs:/home/nodejs/.9router:rw,Z
+
+# Security: no privileged, no host networking, no host PID/IPC
+PrivateNetwork=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/app/data /home/nodejs/.9router
+NoNewPrivileges=true
+RestrictSUIDSGID=true
+
+# Temp directories isolated
+TemporaryFileSystem=/tmp
+TempSpace=256M
+
+[Service]
+# Graceful shutdown: give app 30s to finish in-flight requests
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+IgnoreSIGPIPE=no
+GuessMainPID=no
+
+# Log forwarding to journald (default in Podman)
+LogForwarding=yes
+
+[Install]
+# Auto-start when user session is active (requires linger enabled)
+WantedBy=default.target session.target

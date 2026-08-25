@@ -1,0 +1,13 @@
+--- a/src/lib/db/repos/usageRepo.js
++++ b/src/lib/db/repos/usageRepo.js
+@@ -10,8 +10,8 @@ import { getMeta, setMeta } from "../helpers/metaStore.js";
+ 
+ const PENDING_TIMEOUT_MS = 60 * 1000;
+-const RING_CAP = 50;
++// Lower ring buffer for low-RAM environments (TV Box ~2GB)
++const RING_CAP = process.env.LOW_MEMORY_MODE === "1" ? 20 : 50;
+-const CONN_CACHE_TTL_MS = 30 * 1000;
++const CONN_CACHE_TTL_MS = process.env.LOW_MEMORY_MODE === "1" ? 15 * 1000 : 30 * 1000;
+ const PERIOD_MS = { "24h": 86400000, "7d": 604800000, "30d": 2592000000, "60d": 5184000000 };
+ 
+ // In-memory state shared across Next.js modules

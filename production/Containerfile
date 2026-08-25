@@ -1,0 +1,101 @@
+# 9Router ARM64 — Production Containerfile
+#
+# Multi-stage build optimized for ARM64 TV Box (~2GB RAM).
+# Uses Node.js 22 Alpine (ARM64) with native node:sqlite.
+# Podman-compatible — no Docker-specific features.
+#
+# Build:
+#   podman build --platform linux/arm64 \
+#     -t localhost/9router:<version> \
+#     -f production/Containerfile .
+#
+# The .excludes file (production/.excludes) is applied by
+# scripts/sync-upstream.sh BEFORE this Containerfile runs,
+# so the build context is already production-clean.
+
+# ── Stage 1: Builder ───────────────────────────────────────
+FROM node:22-alpine AS builder
+
+WORKDIR /build
+
+# Build tools for optional native deps (better-sqlite3)
+# Only needed if you want the native SQLite driver.
+# For pure JS (sql.js) fallback, remove these.
+RUN apk --no-cache add python3 make g++ linux-headers
+
+# Copy manifests first (layer caching)
+COPY package.json package-lock.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production --ignore-scripts \
+    && npm cache clean --force \
+    && rm -rf /root/.npm /tmp/* /var/tmp/*
+
+# Copy application source (tests/, cli/ already excluded by .excludes)
+COPY . .
+
+# Disable telemetry, enable standalone output
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Build Next.js standalone output
+RUN npm run build
+
+# ── Stage 2: Runner (minimal ARM64 image) ─────────────────
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+# Create non-root user for container security
+RUN addgroup -g 1000 -S nodejs \
+    && adduser -u 1000 -S nodejs -G nodejs -h /app
+
+# ── Runtime environment ────────────────────────────────────
+ENV NODE_ENV=production \
+    PORT=20130 \
+    HOSTNAME=0.0.0.0 \
+    NEXT_TELEMETRY_DISABLED=1 \
+    DATA_DIR=/app/data \
+    ENABLE_REQUEST_LOGS=false \
+    OBSERVABILITY_ENABLED=false \
+    NODE_OPTIONS="--max-old-space-size=512 --no-warnings"
+
+# ── Copy standalone build from builder ────────────────────
+COPY --from=builder /build/.next/standalone/ ./
+
+# ── Copy packages excluded from standalone tracing ────────
+# serverExternalPackages in next.config.mjs lists these:
+COPY --from=builder /build/node_modules/better-sqlite3 ./node_modules/better-sqlite3
+COPY --from=builder /build/node_modules/sql.js        ./node_modules/sql.js
+COPY --from=builder /build/node_modules/open          ./node_modules/open
+COPY --from=builder /build/node_modules/next          ./node_modules/next
+
+# ── Copy custom server wrapper (IP sanitization) ─────────
+COPY --from=builder /build/custom-server.js ./custom-server.js
+
+# ── Copy public assets & static ───────────────────────────
+COPY --from=builder /build/public   ./public
+COPY --from=builder /build/.next/static ./.next/static
+
+# ── MITM source (needed for proxy mode) ──────────────────
+COPY --from=builder /build/src/mitm ./src/mitm
+
+# ── Create data dirs with correct permissions ─────────────
+RUN mkdir -p /app/data /app/logs \
+    && chown -R nodejs:nodejs /app \
+    && chmod -R 755 /app
+
+# ── Switch to non-root ────────────────────────────────────
+USER nodejs
+
+# ── Healthcheck (lightweight HTTP, no curl needed) ────────
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=20s \
+  CMD node -e "const http=require('http');const opts={hostname:'127.0.0.1',port:20130,path:'/api/auth/status',timeout:5000};const req=http.request(opts,res=>{process.exit(res.statusCode===200?0:1)});req.on('error',()=>process.exit(1));req.end();"
+
+EXPOSE 20130
+
+# ── Entry point ───────────────────────────────────────────
+RUN printf '#!/bin/sh\nset -e\nmkdir -p /app/data /app/logs\nexec node custom-server.js\n' > /app/entrypoint.sh \
+    && chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]

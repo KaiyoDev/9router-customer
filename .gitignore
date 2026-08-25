@@ -86,3 +86,10 @@ graphify-out/*
 .codegraph/
 .PR/
 .next-analyze/*
+
+# ── ARM64 Custom Distribution ─────────────────────────────
+# Production build assets (kept for reference — not used by Containerfile)
+!Containerfile
+!9router.container
+# Sync script output (local state, don't commit)
+.sync-state.json

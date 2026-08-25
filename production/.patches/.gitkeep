@@ -1,0 +1,11 @@
+# Placeholder — keep the directory structure
+# Add your custom patches here:
+#   production/.patches/001-feature-name.patch
+#
+# Patch format: unified diff (git apply compatible)
+# Example:
+#   --- a/src/some/file.js
+#   +++ b/src/some/file.js
+#   @@ -10,7 +10,7 @@
+#   - old line
+#   + new line

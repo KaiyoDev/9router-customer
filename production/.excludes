@@ -1,0 +1,97 @@
+# 9Router ARM64 — Production Exclusion Rules
+#
+# Paths listed here are PERMANENTLY removed from the production build.
+# This list is enforced on every `sync-upstream.sh --apply` run.
+#
+# Format: one path/pattern per line. Lines starting with # are comments.
+#
+# Categories:
+#   Docker/K8s       — container runtime (we use Podman only)
+#   CI/CD            — GitHub Actions etc.
+#   Documentation    — README translations, docs, images
+#   Testing          — vitest, test suites, baselines
+#   CLI package      — separate npm package, built independently
+#   Development      — dev-only tooling
+#   Leftover files   — temporary/backup files
+
+# ── Docker / Kubernetes ───────────────────────────────────
+Dockerfile
+docker-compose.yml
+.dockerignore
+.kubernetes/
+k8s/
+
+# ── CI/CD ─────────────────────────────────────────────────
+.github/
+.gitlab-ci.yml
+.jenkinsfile
+Jenkinsfile
+ci/
+workflows/
+
+# ── Documentation ─────────────────────────────────────────
+README.md
+README.zh-CN.md
+README.es.md
+README.fa_IR.md
+README.fr.md
+README.id-ID.md
+README.pt-BR.md
+README.th.md
+README.vi.md
+docs/images/
+docs/superpowers/
+i18n/
+
+# ── Testing ───────────────────────────────────────────────
+tests/
+coverage/
+jest.config.*
+vitest.config.*
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+__snapshots__/
+__baseline__/
+*.snap
+
+# ── CLI package (separate artifact) ───────────────────────
+cli/
+
+# ── Development tooling ───────────────────────────────────
+.eslintignore
+.prettierrc
+.editorconfig
+.vscode/
+.claude/
+.cursor/
+.env.local
+.env.development
+.env.test
+node-api.json
+
+# ── Backup / temporary ────────────────────────────────────
+*.bak
+*.old
+*.tmp
+*.log
+logs/
+data/
+open-sse.old/
+.next-analyze/
+.graphifyignore
+graphify-out/
+gitbooks/
+
+# ── Non-production scripts ────────────────────────────────
+scripts/agSniffer/
+
+# ── Local working dirs ────────────────────────────────────
+.claude/
+.docs/
+.repo/
+.script/
+.codegraph/
+.PR/
+.cursor/
