@@ -121,6 +121,7 @@ section "Building image"
 
 BUILD_CMD=(
     podman build
+    --cgroup-manager=cgroupfs
     --platform linux/arm64
     --tag "${IMAGE_NAME}:${IMAGE_TAG}"
     --tag "${IMAGE_NAME}:current"
@@ -158,8 +159,10 @@ if $DRY_RUN; then
 fi
 
 log "Starting healthcheck container..."
+# --cgroup-manager=cgroupfs is needed for rootless Podman without systemd user session
 podman rm -f "$HC_CONTAINER" 2>/dev/null || true
 podman run -d \
+    --cgroup-manager=cgroupfs \
     --name "$HC_CONTAINER" \
     --publish "${HC_PORT}:20130" \
     --env NODE_ENV=production \
