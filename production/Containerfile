@@ -40,6 +40,14 @@ RUN npm install --ignore-scripts --omit=optional \
     && npm cache clean --force \
     && rm -rf /root/.npm /tmp/* /var/tmp/*
 
+# ── Pre-install SWC binary for Linux ARM64 glibc ──────────────
+# Next.js standalone output needs this binary at runtime.
+# Without it, lightningcss fails with "Cannot find module ...musl.node"
+# even when building on Debian/glibc.  We install the GNU variant
+# explicitly so Next.js doesn't try to auto-download the wrong one.
+RUN npm install --no-save --ignore-scripts @next/swc-linux-arm64-gnu@$(node -e "console.log(require('./node_modules/next/package.json').version)") 2>/dev/null || \
+    npm install --no-save --ignore-scripts @next/swc-linux-arm64-gnu@16.3.2
+
 # Copy application source (tests/, cli/ already excluded by .excludes)
 COPY . .
 
@@ -79,6 +87,9 @@ COPY --from=builder /build/.next/standalone/ ./
 COPY --from=builder /build/node_modules/sql.js        ./node_modules/sql.js
 COPY --from=builder /build/node_modules/open          ./node_modules/open
 COPY --from=builder /build/node_modules/next          ./node_modules/next
+# SWC binary (lightningcss) — must match the glibc variant for ARM64
+COPY --from=builder /build/node_modules/@next/swc-linux-arm64-gnu \
+                    ./node_modules/@next/swc-linux-arm64-gnu
 
 # ── Copy custom server wrapper (IP sanitization) ─────────
 COPY --from=builder /build/custom-server.js ./custom-server.js
