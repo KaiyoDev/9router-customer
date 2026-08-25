@@ -25,11 +25,13 @@ WORKDIR /build
 # - better-sqlite3 is optional; removed to keep image small
 
 # Copy manifests first (layer caching)
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Install production dependencies only
-# --ignore-scripts prevents native addon compilation (better-sqlite3)
-RUN npm ci --only=production --ignore-scripts \
+# --ignore-scripts prevents native addon compilation (better-sqlite3).
+# Using npm install instead of npm ci: package-lock.json is gitignored
+# in this repo so it won't be available in the build context.
+RUN npm install --production --ignore-scripts \
     && npm cache clean --force \
     && rm -rf /root/.npm /tmp/* /var/tmp/*
 
