@@ -265,8 +265,8 @@ podman run -d \
     --name "$CONTAINER_NAME" \
     --restart unless-stopped \
     --publish 20130:20130 \
-    --memory 1800m \
-    --memory-swap 1800m \
+    --memory 1024m \
+    --memory-swap 1024m \
     --env NODE_ENV=production \
     --env PORT=20130 \
     --env HOSTNAME=0.0.0.0 \

@@ -27,9 +27,9 @@ PublishPort=20130:20130
 RestartPolicy=always
 RestartSec=10
 
-# Resource limits — hard cap to protect 2GB TV Box
-MemoryMax=1800M
-MemoryHigh=1500M
+# Resource limits — hard cap to protect 2GB TV Box (1GB for Node + 512MB headroom)
+MemoryMax=1024M
+MemoryHigh=800M
 
 # Environment (matched to custom/config/.env.production)
 Env=NODE_ENV=production
