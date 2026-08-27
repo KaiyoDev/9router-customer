@@ -41,11 +41,9 @@ Env=ENABLE_REQUEST_LOGS=false
 Env=OBSERVABILITY_ENABLED=false
 Env=DATA_DIR=/app/data
 
-# Persistent volumes
-# Data: SQLite database
-Volume=/home/kaiyo/.local/share/9router-data:/app/data:rw,Z
-# Logs: ~/.9router usage.json + log.txt
-Volume=/home/kaiyo/.local/share/9router-logs:/home/nodejs/.9router:rw,Z
+# Persistent volumes (Podman named volumes — avoids rootless UID mapping issues)
+Volume=9router-data:/app/data
+Volume=9router-logs:/home/node/.9router
 
 # Security: isolated network, no privileged, no host namespaces
 PrivateNetwork=true

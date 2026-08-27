@@ -102,8 +102,8 @@ if $STATUS; then
     echo "    http://localhost:20130/dashboard"
     echo "    http://localhost:20130/api/auth/status"
     echo ""
-    echo "  Data dir : $DATA_DIR"
-    echo "  Logs dir : $LOGS_DIR"
+    echo "  ${CYAN}Data volume:${NC}  podman volume inspect 9router-data"
+    echo "  ${CYAN}Logs volume:${NC}  podman volume inspect 9router-logs"
     echo ""
     echo "  Commands:"
     echo "    podman logs -f $CONTAINER_NAME        # view logs"
@@ -257,6 +257,10 @@ if podman ps -q --filter "name=$CONTAINER_NAME" 2>/dev/null | grep -q .; then
     podman rm "$CONTAINER_NAME" 2>/dev/null || true
 fi
 
+# Ensure Podman volumes exist
+podman volume create 9router-data 2>/dev/null || true
+podman volume create 9router-logs 2>/dev/null || true
+
 # Start fresh container with all settings
 log "Starting ${CONTAINER_NAME} with image ${IMAGE_TAG}..."
 
@@ -275,8 +279,8 @@ podman run -d \
     --env ENABLE_REQUEST_LOGS=false \
     --env OBSERVABILITY_ENABLED=false \
     --env DATA_DIR=/app/data \
-    --volume "${DATA_DIR}:/app/data:rw,Z" \
-    --volume "${LOGS_DIR}:/home/nodejs/.9router:rw,Z" \
+    --volume 9router-data:/app/data \
+    --volume 9router-logs:/home/node/.9router \
     --security-opt no-new-privileges:true \
     "${IMAGE_NAME}:${IMAGE_TAG}"
 
