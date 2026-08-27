@@ -264,6 +264,9 @@ podman volume create 9router-logs 2>/dev/null || true
 # Start fresh container with all settings
 log "Starting ${CONTAINER_NAME} with image ${IMAGE_TAG}..."
 
+# DEFAULT_PASSWORD can be overridden via env var; falls back to Kaiyo-specific default
+DEFAULT_PASSWORD="${INITIAL_PASSWORD:-Kaiyo2024Secure!}"
+
 podman run -d \
     --cgroup-manager=cgroupfs \
     --name "$CONTAINER_NAME" \
@@ -279,6 +282,7 @@ podman run -d \
     --env ENABLE_REQUEST_LOGS=false \
     --env OBSERVABILITY_ENABLED=false \
     --env DATA_DIR=/app/data \
+    --env INITIAL_PASSWORD="${DEFAULT_PASSWORD}" \
     --volume 9router-data:/app/data \
     --volume 9router-logs:/home/node/.9router \
     --security-opt no-new-privileges:true \

@@ -101,6 +101,16 @@ COPY --from=builder /build/.next/static ./.next/static
 # ── MITM source (needed for proxy mode) ──────────────────
 COPY --from=builder /build/src/mitm ./src/mitm
 
+# ── Patch better-sqlite3 throw → return null ───────────────
+# better-sqlite3 is not available on ARM64; node:sqlite (built-in since Node 22)
+# is used as fallback. The adapter's catch block must return null so driver.js
+# can proceed to the next fallback (node:sqlite).
+# Patch both source and compiled chunks (chunks are baked by Next.js during build).
+RUN sed -i 's/throw new Error("better-sqlite3 is not installed")/return null/' \
+        /app/src/lib/db/adapters/betterSqliteAdapter.js
+RUN find /app/.next/server/chunks -name '*.js' -exec \
+        sed -i 's/throw Error("\\"better-sqlite3 is not installed\\"\\" )/return null/g; s/throw Error("better-sqlite3 is not installed")/return null/g' {} +
+
 # ── Create data dirs with correct permissions ─────────────
 RUN mkdir -p /app/data /app/logs \
     && chown -R node:node /app \
