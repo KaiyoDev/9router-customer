@@ -1,0 +1,31 @@
+﻿name: Build ARM64
+
+on:
+  push:
+    branches: [custom-arm64]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -f production/Containerfile \
+            -t 9router-arm64:latest \
+            --load \
+            .
+          docker save 9router-arm64:latest | gzip > 9router-arm64.tar.gz
+          ls -lh 9router-arm64.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 9router-arm64
+          path: 9router-arm64.tar.gz
