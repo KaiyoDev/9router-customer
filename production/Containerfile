@@ -90,6 +90,10 @@ COPY --from=builder /build/node_modules/@next/swc-linux-arm64-gnu \
 # ── Copy custom server wrapper (IP sanitization) ─────────
 COPY --from=builder /build/custom-server.js ./custom-server.js
 
+# ── Remove better-sqlite3 (optional dep, no prebuilt ARM64 binary) ──
+# Node 22 has built-in node:sqlite — better-sqlite3 falls back gracefully via driver.js
+RUN rm -rf /app/node_modules/better-sqlite3
+
 # ── Copy public assets & static ───────────────────────────
 COPY --from=builder /build/public   ./public
 COPY --from=builder /build/.next/static ./.next/static
